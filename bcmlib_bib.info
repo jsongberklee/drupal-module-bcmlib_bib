@@ -1,0 +1,25 @@
+name = Berklee Library BIB number field formatter
+description = This module to display the library catalog item by the BIB number
+package = Berklee College of Music
+project = "bcmlib_bib"
+datestamp = "1373924501"
+version = "7.x-1.0-beta1"
+core = 7.x
+
+dependencies[] = jsongutil
+
+files[] = bcmlib_bib.module   
+files[] = bcmlib_bib.install
+
+stylesheets[all][] = bcmlib_bib.css
+stylesheets[all][] = scroll/smoothDivScroll.css
+
+scripts[] = js/imagesloaded.pkgd.min.js
+scripts[] = js/isotope.pkgd.min.js
+
+scripts[] = scroll/jquery-ui-1.10.3.custom.min.js
+scripts[] = scroll/jquery.mousewheel.min.js
+scripts[] = scroll/jquery.kinetic.min.js
+scripts[] = scroll/jquery.smoothdivscroll-1.3-prod.js
+
+

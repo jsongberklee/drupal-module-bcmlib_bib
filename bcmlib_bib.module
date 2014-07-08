@@ -1,0 +1,916 @@
+<?php 
+// include local functions
+require_once('includes/bcmlib_bib.inc');
+/**
+ * Implements hook_field_info().
+ */
+function bcmlib_bib_field_info() {  
+  return array(  
+    // Which is called bcmlib_bib.
+    'bcmlib_bib' => array(  
+      // Name of our type will be 'Te(x/s)t field'.
+      'label' => t('BIB text field'),  
+      // Description of our type.
+      'description' => t('BIB text field'),  
+      // Standart widget that will be dispalyed at once.
+      // after that we choose field type 
+      'default_widget' => 'bcmlib_bib_widget',                        
+      // Standart that will be dispayed right after we choose field type.
+      'default_formatter' => 'bcmlib_bib_formatter',  
+    ), 
+  ); 
+}
+/**
+ * Implements hook_field_widget_info().
+ */
+function bcmlib_bib_field_widget_info() {  
+  // Returning massive.
+  return array(   
+    // With bcmlib_bib name.
+    'bcmlib_bib' => array(  
+      // Our widget will be named bcmlib_bib label.
+      'label' => t('bcmlib_bib label'),  
+      // Our widget will work with a field in DB under the name bcmlib_bib.
+      'field types' => array('bcmlib_bib'),  
+    ), 
+  ); 
+} 
+/**
+ * Implements hook_field_widget_form().
+ */
+function bcmlib_bib_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  // Setting switch into parameters that wll work widget types that are in module.
+  switch ($instance['widget']['type']) {  
+      // If parameter case is 'bcmlib_bib'.
+      case 'bcmlib_bib':
+        // Then we assign to bcmlib_bib element an array.
+        // With the following values.
+        $element['bcmlib_bib'] = array(  
+            // Element type 'bcmlib_bibield'.
+            '#type' => 'textfield',  
+            // Widget description is given in element settings.
+            '#description' => $element['#description'], 
+            // Our widget will have standart value bcmlib_bibield.
+            '#default_value' => t(isset($items[$delta]['bcmlib_bib']) ? $items[$delta]['bcmlib_bib'] : ''),  
+            // If element is required it will be indicated in settings of the very element.
+            '#required' => $element['#required'],  
+            // Element location –  
+            // If it's indicated, value should be used, if not, value is 0.
+            '#weight' => isset($element['#weight']) ? $element['#weight'] : 0, 
+            // Line that we'll need for the output.
+            '#delta' => $delta,  
+        ); 
+      break;
+  } 
+  return $element;
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function bcmlib_bib_field_is_empty($item, $field) { 
+   // If there's nothing in $item['bcmlib_bib'].
+   if (empty($item['bcmlib_bib'])) { 
+        // Then we return 1, i.e. we say to Drupal that everything is fine).
+        return TRUE;  
+        // And if it's empty, nothing will be displayed.
+   } 
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function bcmlib_bib_field_formatter_info() {  
+  // Returning array.
+  return array(   
+      // Name of our format for code.
+      'bcmlib_bib_formatter' => array(  
+          // Dispalyed name of format.
+          'label' => t('BIB text field formatter'),  
+          // Field in DB with which our format will work.
+          'field types' => array('bcmlib_bib'),  
+      ),
+      'entityreference_bib_entity' => array(
+	      'label' => t('BIB Rendered Entity'),
+	      'description' => t('Display BIB entities rendered by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+      'entityreference_bib_entity_teaser' => array(
+	      'label' => t('BIB Rendered Entity Teaser '),
+	      'description' => t('Display BIB entities rendered as teaser by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+      'entityreference_bib_entity_teaser_scroll' => array(
+	      'label' => t('BIB Rendered Entity Teaser Scroll '),
+	      'description' => t('Display BIB entities rendered as teaser with scroll by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+      'entityreference_bib_entity_filtered' => array(
+	      'label' => t('BIB Rendered Entity Filtered'),
+	      'description' => t('Display BIB entities rendered as filterable by the bib item type, by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+      'entityreference_bib_entity_grouped' => array(
+	      'label' => t('BIB Rendered Entity Grouped'),
+	      'description' => t('Display BIB entities rendered as grouped by the bib item type, by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+      'entityreference_bib_entity_grouped_scroll' => array(
+	      'label' => t('BIB Rendered Entity Grouped Hol Scroll'),
+	      'description' => t('Display BIB entities rendered as grouped with horizontal scroll by the bib item type, by bcmlib_bib module.'),
+	      'field types' => array('entityreference'),
+      ),
+
+
+      'bib_img_url' => array(
+	      'label' => t('BIB Rendered Image URL'),
+	      'description' => t('Display BIB Image URL text field rendered as HTML'),
+	      'field types' => array('text'),
+      ),
+
+  ); 
+}
+/**
+ * Implements hook_field_formatter_view().
+ */
+function bcmlib_bib_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+  switch ($display['type']) {
+
+	case 'bib_img_url':
+		foreach ($items as $delta => $item) {
+			//dsm($item);
+			$element[$delta] = array(
+				'#type' => 'markup',
+				'#markup' => '<img class="bib-img-url" src="'.$item['value'].'" />',
+			);
+		}
+		break;
+
+	case 'bcmlib_bib_formatter':
+		foreach ($items as $delta => $item) {
+			//dsm($item['bcmlib_bib']);
+			$element[$delta] = array(
+				// We create a render array to produce the desired markup,
+				// "<p style="color: #hexcolor">The color code ... #hexcolor</p>".
+				// See theme_html_tag().
+				'#type' => 'html_tag',
+				'#tag' => 'div',
+				'#attributes' => array(
+				'class' => 'bib-eachitem-wrapper clearfix',
+				),
+				//'#value' => t('Bib number -> @bib', array('@bib' => $item['bcmlib_bib'])),
+				'#value' => _theme_eg_item(_get_eg_item_marcxml($item['bcmlib_bib'])),
+				//'#value' => _get_eg_item($item['bcmlib_bib']),
+			);
+		}
+		break;
+      
+	case 'entityreference_bib_entity_teaser':
+	
+		$selectedItems = _get_rand_items($items, 5); // second parameter define the number of items to display. 
+		$nid = $entity->nid;
+		$containerVname = "container".$nid;
+		$containerId = 'isotope-teaser-'.$nid;
+		$isoVname =  "iso".$nid;
+		
+
+		drupal_add_js(" var ".$containerVname." = document.querySelector('.".$containerId."');
+						var ".$isoVname." = new Isotope(".$containerVname." , {itemSelector: '.bib-eachitem-wrapper', masonry: {isFitWidth: true} });
+			  			imagesLoaded( ".$containerVname.", function(){".$isoVname.".layout();} );
+					  ", 'inline');
+		
+		$html = '<div class="'.$containerId.'" style="margin: 0 auto;">';
+				  
+		foreach ($selectedItems as $delta => $item) {
+			$html .= _theme_bib_item($item, $entity->vid);
+		}
+		
+		$element[] = array(
+			'#type' => 'markup',
+			'#markup' => $html.'</div>',
+		);
+			
+		break;
+		
+		case 'entityreference_bib_entity_teaser_scroll':		
+
+		shuffle($items); // second parameter define the number of items to display. 
+		$nid = $entity->nid;
+		$containerVname = "container".$nid;
+		
+		drupal_add_js("
+			(function ($) {
+				$(document).ready(function () {
+					$('#".$containerVname."').smoothDivScroll({
+						hotSpotScrolling: true,
+						touchScrolling: true,
+						continuousScrolling: false,
+						autoScrollingInterval: 100,
+						autoScrollingMode: 'onStart',
+						manualContinuousScrolling: false
+					});
+				});
+			})(jQuery);					
+		", 'inline');			
+		
+		$html .='<div id="'.$containerVname.'" class="smoothdiv-'.$nid.' clearfix scrollerBorderJsong" style="margin: 0 auto;">';
+		foreach ($items as $delta => $item) {
+			$html .= _theme_bib_item($item, $entity->vid);
+		}
+		$html .='</div>';
+		
+		$element[] = array(
+				'#type' => 'markup',
+				'#markup' => $html,
+				);
+	
+		break;	
+
+	
+	case 'entityreference_bib_entity_filtered':
+	
+		// get filter type by loading each node and comparing "field_cat" value
+		$filterItems = array();
+		foreach ($items as $delta => $item) {
+			$node = node_load($item);
+			if($entity->type == 'announcement'){$filterName = isset($node->field_bib_group['und'][0]['value']) ? $node->field_bib_group['und'][0]['value'] : 'Unknown Group';}
+			else{$filterName = isset($node->field_tpac_local_item_type['und'][0]['value']) ? $node->field_tpac_local_item_type['und'][0]['value'] : 'Unknown Media Type';}
+			
+			$filterKey = _get_filter_css($filterName);
+			if(!in_array($filterName, $filterItems)) $filterItems[$filterKey] = $filterName;
+		}		
+		
+		$nid = $entity->nid;
+		$containerVname = "container".$nid;
+		$containerId = 'isotope-teaser-'.$nid;
+		$isoVname =  "iso".$nid;
+		$filterId = 'isotope-filters'.$nid;
+		$filterHtml = '';		
+		drupal_add_js(" var ".$containerVname." = document.querySelector('.isotope-filtered');
+						var ".$isoVname." = new Isotope(".$containerVname." , {itemSelector: '.bib-eachitem-wrapper', masonry: {isFitWidth: true} });
+			  			imagesLoaded( ".$containerVname.", function(){".$isoVname.".layout();} );
+					  ", 'inline');
+		
+		// check if there is more than one type and display filter view if there are..
+		if(count($filterItems) > 1){
+			$filterHtml = _get_filterHtml($filterItems, $filterId);
+			
+			drupal_add_js("
+				jQuery('#".$filterId."all').css('background-color', '#1F7872');
+				jQuery('#".$filterId."').on( 'click', 'button', function(){
+					var target = jQuery(this);
+					var filterValue = target.attr('data-filter'); 
+					".$isoVname.".arrange({ filter: filterValue });	
+					target.siblings().removeAttr('style');
+					target.css('background-color', '#1F7872'); 
+				}); 
+			", 'inline');
+		}		
+
+		$html = '<div class="isotope-filtered" style="margin: 0 auto;">';		
+		foreach ($items as $delta => $item) {
+			$html .= _theme_bib_item($item, $entity->vid);
+		}
+		$element[] = array('#type' => 'markup', '#markup' => $filterHtml.$html.'</div>');
+		break;
+	
+
+	case 'entityreference_bib_entity_grouped':		
+
+		$groupItems = array();
+		foreach ($items as $delta => $item) {
+			$node = node_load($item);
+			if($entity->type == 'announcement'){
+				$groupName = isset($node->field_bib_group['und'][0]['value']) ? $node->field_bib_group['und'][0]['value'] : 'Unknown Group';	
+			}
+			else{
+				$groupName = isset($node->field_tpac_local_item_type['und'][0]['value']) ? $node->field_tpac_local_item_type['und'][0]['value'] : 'Unknown Media Type';	
+			}
+			
+			$groupItems[$groupName][] = $node;
+		}
+		//dsm($groupItems);
+		$nid = $entity->nid;
+		$html = '<div class="bib-groups-'.$nid.'">';
+		foreach ($groupItems as $group => $groupitems){
+			//dsm(trim(str_replace(' ', '', $group)));
+			$groupMachineName = trim(str_replace('-', '_', str_replace(' ', '', $group)));
+			$containerVname = "container_".$nid.$groupMachineName;
+			$isoVname =  "iso_".$nid.$groupMachineName;
+			drupal_add_js(" var ".$containerVname." = document.querySelector('.isotope-grouped-".$nid."-".$groupMachineName."');
+				var ".$isoVname." = new Isotope(".$containerVname." , {itemSelector: '.bib-eachitem-wrapper', masonry: {isFitWidth: true} });
+	  			imagesLoaded( ".$containerVname.", function(){".$isoVname.".layout();} );
+			  ", 'inline');
+
+			
+			$html .='<h5>'.$group.'</h5><div class="isotope-grouped-'.$nid.'-'.$groupMachineName.' clearfix" style="margin: 0 auto;">';
+			foreach ($groupitems as $eachobj){
+				//dsm('-- '.$eachobj->title);
+				$html .= _theme_bib_obj($eachobj, $entity->vid);
+			}
+			$html .='</div>';
+		}
+		$html .= '</div>';
+		
+		$element[] = array(
+				'#type' => 'markup',
+				'#markup' => $html,
+				);
+	
+		break;
+		
+	case 'entityreference_bib_entity_grouped_scroll':		
+
+		$groupItems = array();
+		foreach ($items as $delta => $item) {
+			$node = node_load($item);
+			if($entity->type == 'announcement'){
+				$groupName = isset($node->field_bib_group['und'][0]['value']) ? $node->field_bib_group['und'][0]['value'] : 'Unknown Group';	
+			}
+			else{
+				$groupName = isset($node->field_tpac_local_item_type['und'][0]['value']) ? $node->field_tpac_local_item_type['und'][0]['value'] : 'Unknown Media Type';	
+			}
+			
+			$groupItems[$groupName][] = $node;
+		}
+		
+		drupal_add_css(drupal_get_path('module', 'bcmlib_bib').'/scroll/smoothDivScroll.css', array('group' => CSS_DEFAULT, 'every_page' => false));
+		//dsm($groupItems);
+		$nid = $entity->nid;
+		$html = '<div class="bib-groups-'.$nid.'">';
+		foreach ($groupItems as $group => $groupitems){
+			//dsm(trim(str_replace(' ', '', $group)));
+			$groupMachineName = trim(str_replace(' ', '', $group));
+			$containerVname = "container_".$nid.$groupMachineName;
+			$isoVname =  "iso_".$nid.$groupMachineName;			
+			drupal_add_js("
+				(function ($) {
+					$(document).ready(function () {
+						$('#".$containerVname."').smoothDivScroll({
+							hotSpotScrolling: true,
+							touchScrolling: true,
+							continuousScrolling: false,
+							//autoScrollingInterval: 100,
+							//autoScrollingMode: 'onStart',
+							manualContinuousScrolling: false
+						});						
+					});
+					$('#".$containerVname."').hover(function(){
+						var cheight = $('#".$containerVname."').height();
+						$('#".$containerVname." .scrollingHotSpotLeft').height(cheight);
+						$('#".$containerVname." .scrollingHotSpotRight').height(cheight);
+					});
+					
+				})(jQuery);					
+			", 'inline');	
+
+			$html .='<h5>'.$group.'</h5><div id="'.$containerVname.'" class="smoothdiv-'.$nid.'-'.$groupMachineName.' clearfix scrollerBorderJsong" style="margin: 0 auto;">';
+			foreach ($groupitems as $eachobj){
+				//dsm('-- '.$eachobj->title);
+				$html .= _theme_bib_obj($eachobj, $entity->vid);
+			}
+			$html .='</div>';			
+		}
+		$html .= '</div>';
+		
+		$element[] = array(
+				'#type' => 'markup',
+				'#markup' => $html,
+				);
+	
+		break;	
+		
+	case 'entityreference_bib_entity':		
+	
+		$groupItems = array();
+		foreach ($items as $delta => $item) {
+			$node = node_load($item);
+			if($entity->type == 'announcement'){
+				$groupName = isset($node->field_bib_group['und'][0]['value']) ? $node->field_bib_group['und'][0]['value'] : 'Unknown Group';	
+			}
+			else{
+				$groupName = isset($node->field_tpac_local_item_type['und'][0]['value']) ? $node->field_tpac_local_item_type['und'][0]['value'] : 'Unknown Media Type';	
+			}
+			
+			$groupItems[$groupName][] = $node;
+		}
+		//dsm($groupItems);
+		$html = '<div class="bib-groups-'.$entity->nid.'">';
+		foreach ($groupItems as $group => $groupitems){
+			// MASONRY IS DEPRECATED, THE MODULE IS ALSO DISABLED.
+			//masonry_apply(('.bib-eachgroup.'.trim(str_replace(' ', '', $group))) , array('masonry_item_selector'=>'.bib-eachitem-wrapper', 'masonry_column_width'=> 0, 'masonry_column_width_units'=>'px', 'masonry_resizable'=>true, 'masonry_animated'=>true, 'masonry_images_first'=>true, 'masonry_fit_width'=>false, 'masonry_gutter_width'=>0));
+			
+			$html .='<h5>'.$group.'</h5><div class="bib-eachgroup '.trim(str_replace(' ', '', $group)).'">';
+			foreach ($groupitems as $eachobj){
+				//dsm('-- '.$eachobj->title);
+				$html .= _theme_bib_obj($eachobj, $entity->vid);
+			}
+			$html .='</div>';
+		}
+		$html .= '</div>';
+		
+		$element[] = array(
+				'#type' => 'markup',
+				'#markup' => $html,
+				);
+	
+		break;
+			
+		
+	}
+		
+		
+
+  return $element;
+}
+
+
+/********************************************************************************************************************
+* ADMIN VIEW
+*********************************************************************************************************************/
+// include local functions
+require_once('includes/bcmlib_bib_admin.inc');
+
+/**
+* Implementation of hook_menu().
+*/
+function bcmlib_bib_menu() {
+	$items['node/%node/add-acquisitions'] = array(
+	      'title' => 'Import EG items',
+	      'type'=> MENU_LOCAL_TASK, 
+	      'page callback' => '_acquisitions_page_callback',
+	      //'page arguments' => array('bcmlib_bib_acquisition_admin');
+	      'access callback' => 'bcmlib_bib_access_check',
+	      'access arguments' => array(1),
+	      '#required' => TRUE,
+	      'file' => 'includes/bcmlib_bib_admin.inc',
+	      'weight' => 1,
+	    );
+	$items['node/%node/add-acquisitions-by-bib-number'] = array(
+		'title' => 'Import EG items by BIB',
+		'type'=> MENU_LOCAL_TASK,
+		'page callback' => '_acquisitions_page_callback_bybib',
+		//'page arguments' => array('bcmlib_bib_acquisition_admin');
+		'access callback' => 'bcmlib_bib_access_check',
+		'access arguments' => array(1),
+		'#required' => TRUE,
+		'file' => 'includes/bcmlib_bib_admin.inc',
+		'weight' => 1,
+    );
+    
+	return $items;
+}
+function bcmlib_bib_access_check($node){
+	global $user;
+	if (($node->type == 'acquisition_library' || $node->type == 'announcement') && (in_array('editor-announcement', $user->roles) || in_array('editor', $user->roles) || in_array('administrator', $user->roles))) {
+	    return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+function _acquisitions_page_callback_bybib(){
+    return drupal_get_form('bcmlib_bib_acquisitons_admin_bybib');
+	echo '_acquisitions_page_callback_bybib';
+}
+function bcmlib_bib_acquisitons_admin_bybib($form, &$form_state){
+	//dsm(arg(1). ' <> ' .arg(2));
+	if(!arg(1)){
+		form_set_error('', t('Access denied, page is not from node edit.'));
+		$form['#access'] = false;
+	}
+	
+	$form_state['storage']['bibnumber_group'] = isset($form_state['storage']['bibnumber_group']) ? $form_state['storage']['bibnumber_group'] : 0;
+		
+	$form['bibnumber_group'] = array(
+		'#type' => 'container',
+		'#tree' => TRUE,
+		'#prefix' => '<div id="bibnumber_group">',
+		'#suffix' => '</div>',
+	);
+	
+	if ($form_state['storage']['bibnumber_group']) {
+		for ($i = 1; $i <= $form_state['storage']['bibnumber_group']; $i++) {
+			$form['bibnumber_group'][$i] = array(
+				'#type' => 'textfield',
+				'#title' => t('Type/paste in each bib number.'),
+				'#tree' => TRUE,
+			);
+		}
+	}
+	$form['bibnumber_group'][0] = array(
+		'#type' => 'textfield',
+		'#title' => t('Type/paste in each bib number.'),
+		'#tree' => TRUE,
+	);
+		
+	$form['add_bibnumber'] = array(
+		'#type' => 'button',
+		'#value' => t('Add BIB number field'),
+		'#href' => '',
+		'#ajax' => array(
+		'callback' => 'bcmlib_bib_ajax_add_bibnumber',
+		'wrapper' => 'bibnumber_group',
+		),
+	);
+	
+	$form_state['storage']['bibnumber_group']++;
+
+	$form['targetnode'] = array('#type' => 'hidden', '#value' => arg(1));
+	$form['next'] = array(
+		'#type' => 'submit',
+		'#value' => 'Add Items to the list',
+		'#submit' => array('bcmlib_bib_acquisitons_admin_submit_bybib'),
+		'#validate' => array('bcmlib_bib_acquisitons_admin_validate_bybib'),
+	);
+
+  return $form;
+}
+
+function bcmlib_bib_ajax_add_bibnumber($form, $form_state) {
+	//dsm('called');
+	return $form['bibnumber_group'];
+}
+
+
+function _acquisitions_page_callback() {
+    return drupal_get_form('bcmlib_bib_acquisitons_admin');
+}
+function bcmlib_bib_acquisitons_admin($form, &$form_state){
+
+	if(!arg(1)){
+		$form['#access'] = false;
+		form_set_error('', t('Access denied, page is not from node edit.'));
+	}
+	
+	// Display page 2 if $form_state['page_num'] == 2
+	if (!empty($form_state['page_num']) && $form_state['page_num'] == 2) {
+		return bcmlib_bib_acquisitons_admin2($form, $form_state);
+	}
+	// Otherwise we build page 1.
+	$form_state['page_num'] = 1;	
+	$form['numOfItems'] = array(
+		'#type' => 'select',
+		'#title' => t('Number of items'),
+		'#value' => $defaultNumOfItems,
+		'#options' => array(
+			10 => t('Recent 10 items'),
+			25 => t('Recent 25 items'),
+			50 => t('Recent 50 items'),
+			75 => t('Recent 75 items'),
+			100 => t('Recent 100 items'),
+			250 => t('Recent 250 items'),
+			500 => t('Recent 500 items'),
+			),
+		'#value' => isset($form_state['input']['numOfItems']) ? $form_state['input']['numOfItems'] : 50,
+		'#description' => t('Select amount of recent items to be displayed.'),
+	);
+	$form['targetnode'] = array('#type' => 'hidden', '#value' => arg(1));
+	$form['next'] = array(
+		'#type' => 'submit',
+		'#value' => 'Display records',
+		'#submit' => array('bcmlib_bib_acquisitons_admin_next'),
+		'#validate' => array('bcmlib_bib_acquisitons_admin_validate_next'),
+	);
+
+  return $form;
+}
+/**
+ * Validate handler for the Import items on first page.
+ */
+function bcmlib_bib_acquisitons_admin_validate_next($form, &$form_state) {
+  $numOfItems = $form_state['input']['numOfItems'];
+  if (!$numOfItems) {
+    form_set_error('numOfItems', t('Please select the number of items'));
+  }
+}
+
+function bcmlib_bib_acquisitons_admin_validate_bybib($form, &$form_state) {
+  
+  if (isset($form_state['values']['bibnumber_group'])) {
+  	foreach($form_state['values']['bibnumber_group'] as $each){
+  		if(!empty($each)) return;
+  	} 
+  }
+
+  form_set_error('bibnumber_group', t('Please fill in at least one BIB number field.'));  
+
+}
+
+function bcmlib_bib_acquisitons_admin_submit_bybib($form, &$form_state) {
+	$bibgroup = $form_state['values']['bibnumber_group'];
+   	$targetNodes = array();
+    foreach($bibgroup as $value){
+    	
+		$isNode = _is_item_exist($value);
+    	if($isNode){
+    		$existNode = node_load($isNode);
+	    	$targetNodes[$existNode->nid] = $existNode;	
+	    	//dsm($existNode);
+	    	drupal_set_message(t('[EXIST ITEM] The item ('.$existNode->field_tpac_bib['und'][0]['value'].') "'.$existNode->title.'" is added to the page.' ));
+    	}
+    	else if($isNode == false && !empty($value)) 
+    	{
+    		
+    		$item = _get_feed_item(_get_feed_item_url($value));
+    		$newNode = _save_to_item_node($item[$value]);
+    		drupal_set_message(t('[NEWLY CREATED] "'.$newNode->title.'" ('.$newNode->field_tpac_bib['und'][0]['value'].') is added to the page.' ));
+	    	$targetNodes[$newNode->nid] = $newNode;
+    	}
+
+    }
+    
+    _update_container_node_bib_field(arg(1), $targetNodes);
+
+}
+function _update_container_node_bib_field($nid, $targetNodes){
+	
+	$containerNode = node_load($nid);
+	if(!$containerNode){		
+		form_set_error('nid', t('The Container node id is missing! please notify the site administrator.')); return;
+	}
+
+	$target = entity_metadata_wrapper('node', $containerNode);
+	$targetFieldValue = $target->field_bib_items->value();
+	if(!empty($targetFieldValue)){
+		$tempTarget = array();
+		foreach($targetFieldValue as $eachTarget){
+			$tempTarget[(string)$eachTarget->nid] = $eachTarget;
+		}
+		// using "+" instead array_merge to merge only unique nodes
+		$updatedFieldValue = $tempTarget+$targetNodes;
+		//$updatedFieldValue = array_merge($tempTarget, $targetNodes);
+		//dsm($updatedFieldValue);
+		
+		$target->field_bib_items->set($updatedFieldValue);
+	}
+	else
+	{
+		$target->field_bib_items->set($targetNodes);
+	}
+	
+	$target->save();
+	drupal_set_message(t('the items are added to '.$containerNode->title));
+	//dsm($target->field_bib_items->value());
+	/*
+$curr_list = $w_containing_node->field_entity_reference_field->value();
+	if (!$curr_list) $currList = array();
+	$curr_list[] = $new_ref;
+	$w_containing_node->field_entity_reference_field->set($curr_list);
+	$w_containing_node->save();
+	*/
+
+}
+
+
+/**
+ * Submit handler for bcmlib_bib_acquisitons_admin() next button.
+ *
+ * Capture the values from page one and store them away so they can be used
+ * at final submit time.
+ */
+function bcmlib_bib_acquisitons_admin_next($form, &$form_state) {
+
+  // Values are saved for each page.
+  // to carry forward to subsequent pages in the form.
+  // and we tell FAPI to rebuild the form.
+  //$form_state['page_values'][1] = $form_state['input'];
+  //if (!empty($form_state['page_values'][2])) {
+  // $form_state['values'] = $form_state['page_values'][2];
+  //}
+
+  // When form rebuilds, it will look at this to figure which page to build.
+  $form_state['page_num'] = 2;
+  $form_state['rebuild'] = TRUE;
+  
+}
+function _populate_items(&$form_state){
+	//dsm($form_state);
+	//dsm($form_state['values']['numOfItems']);
+	return _get_feed_items(_get_feed_items_url($form_state['values']['numOfItems']));
+	//return _get_feed_items(_get_feed_items_url(10));
+}
+
+function bcmlib_bib_acquisitons_admin2($form, &$form_state){
+	// add masonry js for column height
+	//masonry_apply('#masonryjsong', array('masonry_item_selector'=>'.bib-eachitem-wrapper', 'masonry_column_width'=> 20, 'masonry_column_width_units'=>'%', 'masonry_resizable'=>true, 'masonry_animated'=>false, 'masonry_images_first'=>true, 'masonry_fit_width'=>true, 'masonry_gutter_width'=>0));
+	
+	drupal_add_js(" var container = document.querySelector('#masonryjsong');
+						var iso = new Isotope(container , {itemSelector: '.bib-eachitem-wrapper', masonry: {isFitWidth: true} });
+			  			imagesLoaded( container, function(){iso.layout();} );
+			  			jQuery('#isotope-filters .firstjsong').css('background-color', '#1F7872');
+						jQuery('#isotope-filters').on( 'click', 'button', function(){
+							var target = jQuery(this);
+							var filterValue = target.attr('data-filter'); 
+							iso.arrange({ filter: filterValue }); 
+							target.siblings().removeAttr('style');
+							target.css('background-color', '#1F7872'); 				  
+							return false; 
+						}); 
+					  ", 'inline');
+					  
+	$filter = '<div id="isotope-filters" class="button-group radius" style="margin-bottom: 1em;">
+				  <button class="button small firstjsong" data-filter="*">show all</button>
+				  <button class="button small audio" data-filter=".audio">Sound Recording</button>
+				  <button class="button small video" data-filter=".video">Visual Media</button>
+				  <button class="button small book" data-filter=".book">Book</button>
+				  <button class="button small score" data-filter=".score">Score</button>
+				</div><div class="isotope-filtered" style="margin: 0 auto;">
+				';				  			  
+	
+	drupal_add_js("
+	function checkUncheckAll(theElement){
+	  var theForm = theElement.form, z = 0;
+	  for(z=0; z<theForm.length;z++){
+	    if(theForm[z].type == 'checkbox' && theForm[z].name != 'checkall'){
+	      theForm[z].checked = theElement.checked;
+	    }
+	  }
+	}
+	", 'inline');
+	
+	$bibItems = _populate_items($form_state);
+
+	$form['description'] = array(
+		'#type' => 'item',
+	    '#title' => t('Click on checkbox to select the items to be imported'),
+	);
+	$form['filterButton'] = array(
+    '#markup' => $filter,
+	);
+	$form['bib_number_checkall'] = array(
+	'#type' => 'checkbox',
+	'#title' => t('Select / Deselect all'),
+	'#attributes' => array('onclick' => 'checkUncheckAll(this);'),
+	);
+	$form['bib_number'] = array
+    (
+	    '#type' => 'checkbox_bib',
+	    '#columns' => 3,
+	    '#options' => $bibItems,
+	    '#prefix' => '<div id="masonryjsong" class="bibitem-container"  style="margin: 0 auto;">',
+		'#suffix' => '</div>',   
+    );
+   	$form['targetnode'] = array('#type' => 'hidden', '#value' => $form_state['values']['targetnode']);
+   	$form['bib_items'] = array('#type' => 'hidden', '#value' => $bibItems);
+	$form['submit'] = array(
+		'#type' => 'submit',
+		'#value' => 'Add Items to the list',
+	    '#submit' => array('bcmlib_bib_acquisitons_admin_submit'),
+	    '#validate' => array('bcmlib_bib_acquisitons_admin_validate_submit'),
+	);
+
+  return $form;
+}
+/**
+ * Validate handler for the Import items on second page.
+ */
+function bcmlib_bib_acquisitons_admin_validate_submit($form, &$form_state) {
+  $selectedBibitems = _get_selected_bibitem($form_state['values']['bib_number']);
+  if(empty($selectedBibitems)) {
+    form_set_error('bib_number', t('Please select the number of items'));
+  }
+  else
+  {
+	  $form_state['values']['bib_number'] = $selectedBibitems;
+  }
+  //dsm($form_state['values']['bib_items']);
+  //dsm($form_state['values']['bib_number']);
+  //dsm(_validate_bib($form_state['values']['bib_number']));
+  
+}
+function _get_selected_bibitem($bibs){
+	$selectedBibitem = array();
+	foreach($bibs as $key => $value){
+		if($value == 1) $selectedBibitem[$key] = $key;
+	}
+	return $selectedBibitem;
+}
+
+/**
+ * Submit handler for bcmlib_bib_acquisitons_admin() next button.
+ *
+ * Capture the values from page one and store them away so they can be used
+ * at final submit time.
+ */
+function bcmlib_bib_acquisitons_admin_submit($form, &$form_state) {
+
+    $selectedBibItems = $form_state['values']['bib_number'];
+    $bibItems = $form_state['values']['bib_items'];
+    //dsm($bibItems);
+   	$targetNodes = array();
+    foreach($selectedBibItems as $key => $value){
+		
+    	$isNode = _is_item_exist($value);
+    	if($isNode){
+    		$existNode = node_load($isNode);
+	    	$targetNodes[$existNode->nid] = $existNode;	
+	    	//dsm($existNode);
+	    	drupal_set_message(t('* The item ('.$existNode->field_tpac_bib['und'][0]['value'].') "'.$existNode->title.'" is in the system already.' ));
+    	}
+    	else
+    	{
+    		$newNode = _save_to_item_node($bibItems[$key]);
+    		drupal_set_message(t('"'.$newNode->title.'" ('.$newNode->field_tpac_bib['und'][0]['value'].') is created.' ));
+	    	$targetNodes[$newNode->nid] = $newNode;
+	    	
+	    	//dsm($newNode);
+    	}
+    }
+    
+	_update_container_node_bib_field(arg(1), $targetNodes);
+}
+
+/**
+* Implements hook_elements().
+*/
+function bcmlib_bib_element_info() {
+  return array(
+    'checkbox_bib' => array(
+      '#input' => TRUE,
+      '#tree' => TRUE,
+      '#process' => array('bcmlib_bib_element_process_callback'),
+      '#element_validate' => array('bcmlib_bib_element_validate'),
+      '#theme' => array('bcmlib_bib_element'),
+      '#theme_wrappers' => array('form_element'),
+    ),
+  );
+}
+function bcmlib_bib_element_validate($form, &$form_state){
+	
+}
+
+/**
+* Generates form elements for my element.
+*/
+function bcmlib_bib_element_process_callback($element, &$form_state) {
+  
+  $value = is_array($element['#value']) ? $element['#value'] : array();
+  $element['#type'] = 'checkboxes';
+  $element['#tree'] = TRUE;
+  if (count($element['#options']) > 0) {
+    if (!isset($element['#default_value']) || $element['#default_value'] == 0) {
+      $element['#default_value'] = array();
+    }
+    
+	foreach($element['#options'] as $bibItem){
+	//dsm($bibItem['type']);
+	//$renderedHtml .= '<div class="bib-eachitem-wrapper clearfix">'._theme_eg_admin_item($bibItem).'</div>';	
+	  $element[$bibItem['tcn']] = array('#type' => 'checkbox', '#processed' => TRUE, '#title' => '', '#attributes' => $element['#attributes'], '#prefix' => '<div class="bib-eachitem-wrapper clearfix '._get_type_color($bibItem['type']).'">'._theme_eg_admin_item($bibItem).'<div class="bibitem-checkbox">', '#suffix' => '</div></div>');
+	  
+	}
+    
+  }
+  
+  return $element;
+}
+
+/*
+function bcmlib_bib_element_process_callback($element, $input = FALSE, &$form_state) {
+	//dsm($element);
+  $value = is_array($element['#value']) ? $element['#value'] : array();
+  $element['#type'] = 'checkboxes';
+  $element['#tree'] = TRUE;
+  if (count($element['#options']) > 0) {
+    if (!isset($element['#default_value']) || $element['#default_value'] == 0) {
+      $element['#default_value'] = array();
+    }
+    
+    foreach ($element['#options'] as $key => $choice) {
+      $class = ($column % $element['#columns']) && $column ? 'checkbox-columns' : 'checkbox-columns-clear';
+      if (!isset($element[$key])) {
+        $element[$key] = array('#type' => 'checkbox', '#processed' => TRUE, '#title' => $choice, '#default_value' => in_array($key, $value), '#attributes' => $element['#attributes'], '#prefix' => '<div class="' . $class . '">', '#suffix' => '</div>');
+      }
+      $column++;
+    }
+  }
+  return;
+}
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
